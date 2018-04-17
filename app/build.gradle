@@ -1,0 +1,72 @@
+apply plugin: 'com.android.application'
+
+dependencies {
+    implementation fileTree(include: '*.jar', dir: 'libs')
+    implementation 'com.madgag.spongycastle:core:1.56.0.0'
+    implementation 'com.android.support:support-annotations:27.1.1'
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.json:json:20140107'
+    androidTestImplementation 'junit:junit:4.12'
+    androidTestImplementation('com.android.support.test:runner:0.5') {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    }
+    androidTestImplementation('com.android.support.test:rules:0.5') {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    }
+}
+
+if (file("./signing.properties").exists()) {
+    Properties props = new Properties()
+    props.load(new FileInputStream(file("signing.properties")))
+    android {
+        signingConfigs {
+            release {
+                storeFile file(props['storeFileName'])
+                keyAlias props['storeAlias']
+                storePassword props['storePassword']
+                keyPassword props['keyPassword']
+            }
+        }
+        testBuildType "release"
+        buildTypes {
+            release {
+                minifyEnabled true
+                zipAlignEnabled true
+                proguardFile './proguard.cfg'
+                testProguardFile './proguard.cfg'
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+}
+
+android {
+    compileSdkVersion 27
+    buildToolsVersion "27.0.3"
+    defaultConfig {
+        versionCode 300
+        versionName "3.0.0"
+        applicationId "ru.valle.btc"
+        testApplicationId "ru.valle.btc.test"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        targetSdkVersion 27
+        //noinspection MinSdkTooLow
+        minSdkVersion 8
+    }
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+            testCoverageEnabled true
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    lintOptions {
+        //TrulyRandom is to mute warning about java.util.SecureRandom in TrulySecureRandom class. It's totally okay for that use case.
+        disable 'TrulyRandom', "GoogleAppIndexingWarning"
+    }
+    productFlavors {
+    }
+}
